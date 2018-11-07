@@ -5,9 +5,13 @@ import android.media.midi.MidiReceiver
 
 class MsfaMidiDeviceService : MidiDeviceService()
 {
-    val input = MsfaMidiReceiver()
+    lateinit var input : MsfaMidiReceiver
 
     override fun onGetInputPortReceivers(): Array<MidiReceiver> {
+        if (!this::input.isInitialized) {
+            input = MsfaMidiReceiver()
+            input.initialize (this)
+        }
         return arrayOf(input)
     }
 }

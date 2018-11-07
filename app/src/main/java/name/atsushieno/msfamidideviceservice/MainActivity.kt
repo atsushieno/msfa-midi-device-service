@@ -10,7 +10,7 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var midi_manager: MidiManager
     lateinit var midi_input: MidiInputPort
-    lateinit var midi_client: MidiReceiver
+    lateinit var midi_client: MsfaMidiReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,10 +18,18 @@ class MainActivity : AppCompatActivity() {
 
         midi_manager = getSystemService(MidiDeviceService.MIDI_SERVICE) as MidiManager
 
+        this.direct_button.setOnClickListener {
+            if (!this::midi_client.isInitialized) {
+                midi_client = MsfaMidiReceiver()
+                midi_client.initialize(this)
+            }
+            play_sound(midi_client)
+        }
+
         this.service_button.setOnClickListener {
             run {
                 if (!this::midi_input.isInitialized) {
-                    val deviceInfo = midi_manager.devices.first { d -> d.type == MidiDeviceInfo.TYPE_VIRTUAL }
+                    val deviceInfo = midi_manager.devices.first { d -> d.properties.getString(MidiDeviceInfo.PROPERTY_PRODUCT).equals ("JMsfaMidi") }
                     midi_manager.openDevice(deviceInfo, { dev ->
                         run {
                             midi_input = dev.openInputPort(0)
@@ -31,12 +39,6 @@ class MainActivity : AppCompatActivity() {
                 } else
                     play_sound(midi_input)
             }
-        }
-        this.service_button.setOnClickListener {
-            if (!this::midi_client.isInitialized) {
-                midi_client = MsfaMidiReceiver()
-            }
-            play_sound(midi_client)
         }
     }
 
